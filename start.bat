@@ -11,6 +11,3 @@ pip install -r requirements.txt
 
 echo Migrating...
 python manage.py migrate --settings=config.settings.local
-
-echo Adding data to database...
-echo from database import * | python manage.py shell

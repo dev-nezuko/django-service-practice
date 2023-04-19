@@ -1,7 +1,11 @@
 *.conda
 *.history
-*__pycache__*
-ANSWER.md
-*.env
-*reset_database.sh
-*.venv*
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.venv/
+.pytest_cache/
+*.sqlite3
+.DS_Store

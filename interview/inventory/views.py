@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
@@ -62,7 +63,7 @@ class InventoryRetrieveUpdateDestroyView(APIView):
         return Response(status=204)
     
     def get_queryset(self, **kwargs):
-        return self.queryset.get(**kwargs)
+        return get_object_or_404(self.queryset, **kwargs)
 
 
 class InventoryTagListCreateView(APIView):
@@ -114,7 +115,7 @@ class InventoryTagRetrieveUpdateDestroyView(APIView):
         return Response(status=204)
 
     def get_queryset(self, **kwargs):
-        return self.queryset.get(**kwargs)
+        return get_object_or_404(self.queryset, **kwargs)
 
 
 class InventoryLanguageListCreateView(APIView):
@@ -166,7 +167,7 @@ class InventoryLanguageRetrieveUpdateDestroyView(APIView):
         return Response(status=204)
     
     def get_queryset(self, **kwargs):
-        return self.queryset.get(**kwargs)
+        return get_object_or_404(self.queryset, **kwargs)
     
 
 class InventoryTypeListCreateView(APIView):
@@ -218,4 +219,4 @@ class InventoryTypeRetrieveUpdateDestroyView(APIView):
         return Response(status=204)
     
     def get_queryset(self, **kwargs):
-        return self.queryset.get(**kwargs)
+        return get_object_or_404(self.queryset, **kwargs)

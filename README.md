@@ -1,48 +1,48 @@
-## Instructions
-For this project, you will complete the following coding challenges. Each challenge is a standalone problem and should function independently of the other challenges. When adding code to this repository, assume this is a production codebase: use best practices and style accordingly. Clone this repository then push it to your github **(DO NOT FORK)** and send us a link to the project. Create a unique branch for each problem you are solving. The branches should use the title of the challenge named with the following convention: "challenge-#-name" (eg "challenge-1-inventory-dates", "challenge-2-deactivate-order" etc.). Your code should be free of basic linting errors and shouldn't have any unused imports. **If you are doing any formatting, it should happen on a different commit than where you commited your answers to the challenge.** Do not add any other packages to this project to complete the work. You will be expected to write basic tests so we can validate your code is functioning with the correct inputs and outputs. Once you complete each challenge you will make a PR to your repository on your github for the branch/challenge you completed.
+# Django service practice
 
-## Setup (For Linux/Unix terminals)
-1. Ensure that you have Docker Desktop installed on your computer
-2. Ensure that you have venv installed globally
-3. From the top level directory of this project (where manage.py is located), type: 
-    1. `docker compose --file docker-compose.dev.yml up -d`
-    2. `chmod +x start.sh`
-    3. `./start.sh`
-    4. `source .venv/bin/activate`
+An inventory-and-orders exercise built with Django REST Framework. The current code provides basic list/create routes and inventory/taxonomy detail routes. It is a starting point for the eight tasks in [CHALLENGES.md](CHALLENGES.md), not a completed inventory-management product.
 
-## Setup (For Windows Powershell)
-1. Ensure that you have Docker Desktop installed on your computer
-2. Ensure that you have Python and venv installed on your system, and both are accessible from your system's PATH.
-3. From the top level directory of this project (where manage.py is located), type: 
-    1. `docker-compose --file docker-compose.dev.yml up -d`
-4. Run the start.bat file
-5. Activate your venv `.venv\Scripts\Activate.ps1`
+## What is here
 
+Inventory records reference a type and language and can carry tags and JSON metadata. Orders and order tags have separate list/create endpoints. Django's standard user model remains in use: the requested custom profile, date filters, deactivation endpoint, tag lookups, three-item pagination, and challenge-eight walkthrough are not completed.
 
-### Challenge 1 Inventory Dates:
-Create a view that lists inventory items created after a certain day.
+| Route | Current handlers |
+| --- | --- |
+| `/inventory/` | GET, POST |
+| `/inventory/<id>/` | GET, PATCH, DELETE |
+| `/inventory/tags/`, `/inventory/types/`, `/inventory/languages/` | GET, POST; detail GET/PATCH/DELETE |
+| `/orders/`, `/orders/tags/` | GET, POST |
+| `/admin/` | Standard Django admin; challenge-specific registration remains unfinished |
 
-### Challenge 2 Deactivate Order:
-Write a view "DeactivateOrderView" that sets the is_active state on an order.
+Missing inventory or taxonomy records return 404. List responses are currently unpaginated arrays. These routes retain the exercise's anonymous access, including writes; use a local disposable database. They need an explicit authorization policy before public hosting.
 
-### Challenge 3 Embargo Date:
-Write an endpoint that lists orders that are between a particular start and embargo date.
+## Local setup
 
-### Challenge 4 Profile Model:
-Add an app "profiles". The following should be a production ready model. Create a model "UserProfile" that contains: username, email, password, first name, last name, date joined, last login, is staff, is superuser, is admin, is active. On this model the username field should be set to use the email address for authenticating. This model should also at minimum include functions: get_full_name(), get_username(), is_authenticated(). You should also add a field "avatar" that will contain a thumbnail image of a user's avatar. Set the UserProfile model as the default Django user model.
+Python 3.11 and PostgreSQL 15 are a practical local starting point. The historical requirements pin Django 4.1 and Pydantic 1; no dependency modernization is included.
 
-Finally, create a basic admin section for order and inventory apps.
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
 
-### Challenge 5 Inventory Pagination:
-Add pagination to InventoryListView that displays 3 items per request. Pagination should use an offset and a limit.
+Fill `POSTGRES_PASSWORD` with a private local value. `DEBUG=true` is explicitly local and generates an ephemeral Django key if none is set; configure a stable private `DJANGO_SECRET_KEY` outside that mode. The application loads the root `.env`.
 
-### Challenge 6 Tags on Orders:
-Create an endpoint that lists all tags associated with an order.
+```sh
+docker compose --file docker-compose.dev.yml up -d
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8000
+```
 
-### Challenge 7 Orders on Tag:
-Create an endpoint that lists all the orders associated with a particular tag.
+The database is bound to `127.0.0.1:5444` and stored in the `pgdata` volume. Setup scripts install requirements and migrate; they no longer seed automatically. `database.py` is a data-writing sample generator, not an importable application library. Inspect it before optionally running `python manage.py shell -c "import database"` against a disposable database. The sample generator is not guaranteed idempotent and was not executed in this review.
 
-### Challenge 8 Create Inventory Item:
-Create a file "challenge_8_explanation.md" in the top level folder of this project. Pretend you are working with a junior developer. They are stuck and you are going to explain how they would solve the problem they are working on. They should be able to walk away from your explanation with functional code. Here is what they are trying to do:
-- Add an item to Inventory through the API
-- Their metadata should include these fields (year, actors, imdb_rating, rotten_tomatoes_rating, film_locations)
+## Checks and boundaries
+
+```sh
+python manage.py test --settings=config.settings.test
+```
+
+Three tests pass with Django 4.2 and an in-memory SQLite database: empty inventory, empty order routes, and twelve missing-record operations across inventory/taxonomy endpoints. All Python files parse. PostgreSQL, the historical pinned environment, seed execution, and setup scripts were not run. SQLite tests do not establish PostgreSQL parity.
+
+Creation of inventory still uses nested read serializers without implemented nested writes. Its Pydantic metadata includes a Decimal rating, which also requires deliberate JSON conversion before persistence; the create path is unfinished. PATCH does not apply the same metadata schema as POST. These are concrete remaining challenge work, rather than working features to advertise. No UI is present; endpoint tables and real test results are more useful here than a screenshot.
